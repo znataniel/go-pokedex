@@ -3,13 +3,20 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"github.com/znataniel/go-pokedex/internal/commands"
+	"github.com/znataniel/go-pokedex/internal/pokeapi"
 	"os"
 )
 
 func main() {
-	commands := initializeCommands()
+	commsMap := commands.InitializeCommands()
+	arguments := commands.Config{
+		Commands:    commsMap,
+		UserCommand: "",
+		MapConfig:   pokeapi.PokeMapConfig{},
+	}
 	for {
-		fmt.Print("Input > ")
+		fmt.Print("pokedex > ")
 
 		scanner := bufio.NewScanner(os.Stdin)
 		scanner.Scan() //scans ONCE till EOL or error
@@ -22,16 +29,17 @@ func main() {
 		if line == "" {
 			continue
 		}
-		_, ok := commands[line]
+
+		_, ok := commsMap[line]
 		if !ok {
 			fmt.Println("Command not found:", line)
 			continue
 		}
 
-		if line == "exit" {
-			break
-		}
+		arguments.UserCommand = line
 
-		commands[line].callback(commands)
+		if err := commsMap[line].Callback(&arguments); err != nil {
+			fmt.Println(err)
+		}
 	}
 }
