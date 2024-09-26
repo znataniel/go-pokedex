@@ -63,9 +63,48 @@ func commandExit(config *Config) error {
 }
 
 func commandMap(config *Config) error {
-	return pokeapi.PkmnMap(&(*config).MapConfig)
+	cfg := &config.MapConfig
+	url := pokeapi.BaseUrl + "location-area/"
+
+	if cfg.Next != nil {
+		url = *cfg.Next
+	}
+
+	pokeRes, err := pokeapi.GetLocations(url)
+	if err != nil {
+		return err
+	}
+
+	for _, loc := range pokeRes.Results {
+		fmt.Println(loc.Name)
+	}
+
+	cfg.Prev = pokeRes.Previous
+	cfg.Next = pokeRes.Next
+
+	return nil
 }
 
 func commandMapb(config *Config) error {
-	return pokeapi.PkmnMapb(&(*config).MapConfig)
+	cfg := &config.MapConfig
+
+	if cfg.Prev == nil {
+		return fmt.Errorf("error: no previous locations available")
+	}
+
+	url := *cfg.Prev
+
+	pokeRes, err := pokeapi.GetLocations(url)
+	if err != nil {
+		return err
+	}
+
+	for _, loc := range pokeRes.Results {
+		fmt.Println(loc.Name)
+	}
+
+	cfg.Prev = pokeRes.Previous
+	cfg.Next = pokeRes.Next
+
+	return nil
 }
