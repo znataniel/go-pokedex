@@ -26,40 +26,64 @@ type pokeMap struct {
 	} `json:"results"`
 }
 
+type pokeEncounter struct {
+	PokemonEncounters []struct {
+		Pokemon struct {
+			Name string `json:"name"`
+			URL  string `json:"url"`
+		} `json:"pokemon"`
+	} `json:"pokemon_encounters"`
+}
+
 var cache *pokecache.Cache = pokecache.NewCache(time.Minute * 5)
 
-func GetLocations(url string) (pokeMap, error) {
-
+func makeRequest[T any](url string, dest *T) error {
 	if data, exists := cache.Get(url); exists {
-		pokeRes := pokeMap{}
-		if err := json.Unmarshal(data, &pokeRes); err != nil {
-			return pokeMap{}, err
+		if err := json.Unmarshal(data, dest); err != nil {
+			return err
 		}
-		return pokeRes, nil
+		return nil
 	}
 
 	res, err := http.Get(url)
 	if err != nil {
-		return pokeMap{}, fmt.Errorf("http error: %v", err)
+		return fmt.Errorf("http error: %v", err)
 	}
 
 	defer res.Body.Close()
 
 	decoder := json.NewDecoder(res.Body)
-	pokeRes := pokeMap{}
 
-	if err = decoder.Decode(&pokeRes); err != nil {
-		return pokeMap{}, fmt.Errorf("error reading response body: %v", err)
+	if err = decoder.Decode(dest); err != nil {
+		return fmt.Errorf("error reading response body: %v", err)
 	}
 
-	pokeResBytes, err := json.Marshal(pokeRes)
+	pokeResBytes, err := json.Marshal(dest)
 	if err != nil {
-		return pokeMap{}, fmt.Errorf("error storing cache: %v", err)
+		return fmt.Errorf("error storing cache: %v", err)
 	}
 
 	if err := cache.Add(url, pokeResBytes); err != nil {
-		return pokeMap{}, err
+		return err
 	}
 
+	return nil
+}
+
+func GetLocations(url string) (pokeMap, error) {
+	pokeRes := pokeMap{}
+	err := makeRequest(url, &pokeRes)
+	if err != nil {
+		return pokeMap{}, err
+	}
+	return pokeRes, nil
+}
+
+func GetLocationData(url string) (pokeEncounter, error) {
+	pokeRes := pokeEncounter{}
+	err := makeRequest(url, &pokeRes)
+	if err != nil {
+		return pokeEncounter{}, err
+	}
 	return pokeRes, nil
 }

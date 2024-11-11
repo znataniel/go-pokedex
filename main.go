@@ -6,6 +6,7 @@ import (
 	"github.com/znataniel/go-pokedex/internal/commands"
 	"github.com/znataniel/go-pokedex/internal/pokeapi"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -25,20 +26,23 @@ func main() {
 			continue
 		}
 
-		line := scanner.Text()
+		line := strings.TrimSpace(scanner.Text())
 		if line == "" {
 			continue
 		}
 
-		_, ok := commsMap[line]
+		command, arg, _ := strings.Cut(line, " ")
+
+		_, ok := commsMap[command]
 		if !ok {
-			fmt.Println("Command not found:", line)
+			fmt.Println("Command not found:", command)
 			continue
 		}
 
-		arguments.UserCommand = line
+		arguments.UserCommand = command
+		arguments.CommandArguments = arg
 
-		if err := commsMap[line].Callback(&arguments); err != nil {
+		if err := commsMap[command].Callback(&arguments); err != nil {
 			fmt.Println(err)
 		}
 	}

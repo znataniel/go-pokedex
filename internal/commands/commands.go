@@ -15,9 +15,10 @@ type Command struct {
 }
 
 type Config struct {
-	Commands    map[string]Command
-	UserCommand string
-	MapConfig   pokeapi.PokeMapConfig
+	Commands         map[string]Command
+	UserCommand      string
+	CommandArguments string
+	MapConfig        pokeapi.PokeMapConfig
 }
 
 func InitializeCommands() map[string]Command {
@@ -44,6 +45,12 @@ func InitializeCommands() map[string]Command {
 		name:     "mapb",
 		desc:     "Traverses the map backwards",
 		Callback: commandMapb,
+	}
+
+	commands["explore"] = Command{
+		name:     "explore <area-name>",
+		desc:     "Explores a given area",
+		Callback: commandExplore,
 	}
 
 	return commands
@@ -107,4 +114,24 @@ func commandMapb(config *Config) error {
 	cfg.Next = pokeRes.Next
 
 	return nil
+}
+
+func commandExplore(config *Config) error {
+	if config.CommandArguments == "" {
+		return fmt.Errorf("error: no area to explore provided")
+	}
+
+	url := pokeapi.BaseUrl + "location-area/" + config.CommandArguments
+
+	pokeRes, err := pokeapi.GetLocationData(url)
+	if err != nil {
+		return err
+	}
+
+	for _, encounter := range pokeRes.PokemonEncounters {
+		fmt.Println("\t- ", encounter.Pokemon.Name)
+	}
+
+	return nil
+
 }
