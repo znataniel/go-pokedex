@@ -15,10 +15,10 @@ func main() {
 		UserCommand: "",
 		MapConfig:   pokeapi.PokeMapConfig{},
 	}
+	scanner := bufio.NewScanner(os.Stdin)
 	for {
 		fmt.Print("pokedex > ")
 
-		scanner := bufio.NewScanner(os.Stdin)
 		scanner.Scan() //scans ONCE till EOL or error
 		if scanner.Err() != nil {
 			fmt.Println("Error reading from stdin")

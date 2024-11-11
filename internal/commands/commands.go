@@ -64,7 +64,7 @@ func commandExit(config *Config) error {
 
 func commandMap(config *Config) error {
 	cfg := &config.MapConfig
-	url := pokeapi.BaseUrl + "location-area/"
+	url := pokeapi.BaseUrl + "location-area/?offset=0&limit=20" // First call for locations
 
 	if cfg.Next != nil {
 		url = *cfg.Next

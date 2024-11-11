@@ -7,9 +7,9 @@ import (
 )
 
 type Cache struct {
-	stored   map[string]cacheEntry
-	halfLife time.Duration
-	mu       *sync.Mutex
+	stored     map[string]cacheEntry
+	expiration time.Duration
+	mu         *sync.Mutex
 }
 
 type cacheEntry struct {
@@ -17,16 +17,16 @@ type cacheEntry struct {
 	val       []byte
 }
 
-func NewCache(duration int) Cache {
+func NewCache(duration time.Duration) *Cache {
 	newCache := Cache{
-		stored:   make(map[string]cacheEntry),
-		halfLife: time.Duration(duration * int(time.Second)),
-		mu:       &sync.Mutex{},
+		stored:     make(map[string]cacheEntry),
+		expiration: duration,
+		mu:         &sync.Mutex{},
 	}
 
-	go newCache.reapLoop()
+	go (&newCache).reapLoop()
 
-	return newCache
+	return &newCache
 }
 
 func (cache *Cache) Add(key string, val []byte) error {
@@ -50,27 +50,27 @@ func (cache *Cache) Get(key string) ([]byte, bool) {
 	defer cache.mu.Unlock()
 
 	entry, exists := cache.stored[key]
-	if !exists {
-		return nil, false
-	}
-
-	return entry.val, true
+	return entry.val, exists
 }
 
 func (cache *Cache) reapLoop() {
-	ticker := time.NewTicker(cache.halfLife)
+	ticker := time.NewTicker(cache.expiration)
 
 	for {
 		select {
 		case <-ticker.C:
-			cache.mu.Lock()
-			defer cache.mu.Unlock()
+			cache.reap()
+		}
+	}
+}
 
-			for key, value := range cache.stored {
-				if time.Now().After(value.createdAt.Add(cache.halfLife)) {
-					delete(cache.stored, key)
-				}
-			}
+func (cache *Cache) reap() {
+	cache.mu.Lock()
+	defer cache.mu.Unlock()
+
+	for key, value := range cache.stored {
+		if time.Now().After(value.createdAt.Add(cache.expiration)) {
+			delete(cache.stored, key)
 		}
 	}
 }
