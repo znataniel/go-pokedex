@@ -2,8 +2,12 @@ package commands
 
 import (
 	"fmt"
-	"github.com/znataniel/go-pokedex/internal/pokeapi"
+	"math"
+	"math/rand"
 	"os"
+	"time"
+
+	"github.com/znataniel/go-pokedex/internal/pokeapi"
 )
 
 type CommandFn func(*Config) error
@@ -19,6 +23,7 @@ type Config struct {
 	UserCommand      string
 	CommandArguments string
 	MapConfig        pokeapi.PokeMapConfig
+	Pokedex          map[string]pokeapi.Pokemon
 }
 
 func InitializeCommands() map[string]Command {
@@ -51,6 +56,12 @@ func InitializeCommands() map[string]Command {
 		name:     "explore <area-name>",
 		desc:     "Explores a given area",
 		Callback: commandExplore,
+	}
+
+	commands["catch"] = Command{
+		name:     "catch <pokemon-name>",
+		desc:     "Tries to catch a pokemon!",
+		Callback: commandCatch,
 	}
 
 	return commands
@@ -132,6 +143,43 @@ func commandExplore(config *Config) error {
 		fmt.Println("\t- ", encounter.Pokemon.Name)
 	}
 
+	return nil
+
+}
+
+func commandCatch(config *Config) error {
+	if config.CommandArguments == "" {
+		return fmt.Errorf("error: no pokemon to catch provided")
+	}
+
+	url := pokeapi.BaseUrl + "pokemon/" + config.CommandArguments
+	pokeRes, err := pokeapi.GetPokemon(url)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("throwing pokeball at", config.CommandArguments)
+
+	probability := math.Floor(100 - 3.85*math.Sqrt(float64(pokeRes.BaseExperience)))
+	pick := rand.Intn(100)
+
+	for i := 0; i < 3; i++ {
+		time.Sleep((2000 / 3) * time.Millisecond)
+		fmt.Print(".")
+	}
+	time.Sleep((2000 / 3) * time.Millisecond)
+	fmt.Println()
+
+	if pick > int(probability) {
+		fmt.Println("oh no", config.CommandArguments, "escaped!")
+		return nil
+	}
+
+	fmt.Println("yes!", config.CommandArguments, "has been catched")
+	_, exists := config.Pokedex[config.CommandArguments]
+	if !exists {
+		config.Pokedex[config.CommandArguments] = pokeRes
+	}
 	return nil
 
 }

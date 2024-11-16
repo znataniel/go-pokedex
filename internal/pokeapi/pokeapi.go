@@ -35,6 +35,45 @@ type pokeEncounter struct {
 	} `json:"pokemon_encounters"`
 }
 
+type Pokemon struct {
+	Name                   string `json:"name"`
+	Order                  int    `json:"order"`
+	PastAbilities          []any  `json:"past_abilities"`
+	PastTypes              []any  `json:"past_types"`
+	Height                 int    `json:"height"`
+	Weight                 int    `json:"weight"`
+	HeldItems              []any  `json:"held_items"`
+	ID                     int    `json:"id"`
+	IsDefault              bool   `json:"is_default"`
+	LocationAreaEncounters string `json:"location_area_encounters"`
+	BaseExperience         int    `json:"base_experience"`
+	Abilities              []struct {
+		Ability struct {
+			Name string `json:"name"`
+		} `json:"ability"`
+	} `json:"abilities"`
+	Moves []struct {
+		Move struct {
+			Name string `json:"name"`
+		} `json:"move"`
+	} `json:"moves"`
+	Stats []struct {
+		BaseStat int `json:"base_stat"`
+		Effort   int `json:"effort"`
+		Stat     struct {
+			Name string `json:"name"`
+			URL  string `json:"url"`
+		} `json:"stat"`
+	} `json:"stats"`
+	Types []struct {
+		Slot int `json:"slot"`
+		Type struct {
+			Name string `json:"name"`
+			URL  string `json:"url"`
+		} `json:"type"`
+	} `json:"types"`
+}
+
 var cache *pokecache.Cache = pokecache.NewCache(time.Minute * 5)
 
 func makeRequest[T any](url string, dest *T) error {
@@ -84,6 +123,15 @@ func GetLocationData(url string) (pokeEncounter, error) {
 	err := makeRequest(url, &pokeRes)
 	if err != nil {
 		return pokeEncounter{}, err
+	}
+	return pokeRes, nil
+}
+
+func GetPokemon(url string) (Pokemon, error) {
+	pokeRes := Pokemon{}
+	err := makeRequest(url, &pokeRes)
+	if err != nil {
+		return Pokemon{}, err
 	}
 	return pokeRes, nil
 }

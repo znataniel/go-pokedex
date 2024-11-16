@@ -15,6 +15,7 @@ func main() {
 		Commands:    commsMap,
 		UserCommand: "",
 		MapConfig:   pokeapi.PokeMapConfig{},
+		Pokedex:     make(map[string]pokeapi.Pokemon),
 	}
 	scanner := bufio.NewScanner(os.Stdin)
 	for {
