@@ -70,6 +70,12 @@ func InitializeCommands() map[string]Command {
 		Callback: commandInspect,
 	}
 
+	commands["pokedex"] = Command{
+		name:     "pokedex",
+		desc:     "Prints all caught pokemon",
+		Callback: commandPokedex,
+	}
+
 	return commands
 }
 
@@ -201,7 +207,6 @@ func commandInspect(config *Config) error {
 		return nil
 	}
 
-	fmt.Println()
 	fmt.Println("Name:", pokemon.Name)
 	fmt.Println("Height:", pokemon.Height)
 	fmt.Println("Weight:", pokemon.Weight)
@@ -214,5 +219,17 @@ func commandInspect(config *Config) error {
 		fmt.Println("  -", el.Type.Name)
 	}
 
+	return nil
+}
+
+func commandPokedex(config *Config) error {
+	if n := len(config.Pokedex); n == 0 {
+		fmt.Println("your pokedex is empty!")
+		return nil
+	}
+
+	for pokemon := range config.Pokedex {
+		fmt.Println("  -", pokemon)
+	}
 	return nil
 }
