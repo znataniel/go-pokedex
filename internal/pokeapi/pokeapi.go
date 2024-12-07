@@ -36,30 +36,12 @@ type pokeEncounter struct {
 }
 
 type Pokemon struct {
-	Name                   string `json:"name"`
-	Order                  int    `json:"order"`
-	PastAbilities          []any  `json:"past_abilities"`
-	PastTypes              []any  `json:"past_types"`
-	Height                 int    `json:"height"`
-	Weight                 int    `json:"weight"`
-	HeldItems              []any  `json:"held_items"`
-	ID                     int    `json:"id"`
-	IsDefault              bool   `json:"is_default"`
-	LocationAreaEncounters string `json:"location_area_encounters"`
-	BaseExperience         int    `json:"base_experience"`
-	Abilities              []struct {
-		Ability struct {
-			Name string `json:"name"`
-		} `json:"ability"`
-	} `json:"abilities"`
-	Moves []struct {
-		Move struct {
-			Name string `json:"name"`
-		} `json:"move"`
-	} `json:"moves"`
-	Stats []struct {
+	Name           string `json:"name"`
+	Height         int    `json:"height"`
+	Weight         int    `json:"weight"`
+	BaseExperience int    `json:"base_experience"`
+	Stats          []struct {
 		BaseStat int `json:"base_stat"`
-		Effort   int `json:"effort"`
 		Stat     struct {
 			Name string `json:"name"`
 			URL  string `json:"url"`
